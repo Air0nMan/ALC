@@ -1,10 +1,10 @@
 import numpy as np
-import alc
+import ALC as alc
 
 def cargarDataset(carpeta):
 
-    X_train_cats = np.load(carpeta + "/train/cats/efficientnet_b3_embeddings.npy")
-    X_train_dogs = np.load(carpeta + "/train/dogs/efficientnet_b3_embeddings.npy")
+    X_train_cats = np.load(carpeta + "/dataset/cats_and_dogs/train/cats/efficientnet_b3_embeddings.npy")
+    X_train_dogs = np.load(carpeta + "/dataset/cats_and_dogs/train/dogs/efficientnet_b3_embeddings.npy")
 
     Xt = np.concatenate((X_train_cats, X_train_dogs), axis=1)
 
@@ -16,8 +16,8 @@ def cargarDataset(carpeta):
     Yt[0, :n_train_cats] = 1 
     Yt[1, n_train_cats:] = 1  
 
-    X_val_cats = np.load(carpeta + "/val/cats/efficientnet_b3_embeddings.npy")
-    X_val_dogs = np.load(carpeta + "/val/dogs/efficientnet_b3_embeddings.npy")
+    X_val_cats = np.load(carpeta + "/dataset/cats_and_dogs/val/cats/efficientnet_b3_embeddings.npy")
+    X_val_dogs = np.load(carpeta + "/dataset/cats_and_dogs/val/dogs/efficientnet_b3_embeddings.npy")
 
     Xv = np.concatenate((X_val_cats, X_val_dogs), axis=1)
 
@@ -55,7 +55,7 @@ def pinvEcuacionesNormales(X, Y):
             print("b")
             Xt = alc.traspuesta(X)
             print("2")
-            L,Lt = alc.cholesky(X@Xt)
+            L,Lt = alc.cholesky(alc.multiplicar_matrices(X,Xt,))
             print("2.1")
             Z = np.zeros((n,p))
             print(p)
@@ -80,16 +80,20 @@ def pinvEcuacionesNormales(X, Y):
 
 
             
-Xt,Yt,Xv,Yv = cargarDataset("template-alumnos\cats_and_dogs") 
-W = pinvEcuacionesNormales(Xt,Yt)
+Xt,Yt,Xv,Yv = cargarDataset("/home/Estudiante/Escritorio/LabosALC-main 1/LabosALC-main/template-alumnos") 
+#W = pinvEcuacionesNormales(Xt,Yt)
 
+#%%
 def pinvHouseHolder(Q, R, Y):
     n,p=R.shape
     Qt = alc.traspuesta(Q)
     Vt = np.zeros((p,n))
+    print(n)
     for i in range(n):
         Vt[:,i] = alc.sustitucionSuperior(R,Qt)
+        print(i)
     W = alc.multiplicar_matrices(Y,alc.traspuesta(Vt))
+    #W = alc.multiplicar_matrices(Y,alc.traspuesta(Vt))
     return W
 
 def pinvGramSchmidt(Q, R, Y):
@@ -116,4 +120,6 @@ def esPseudoInversa(X, pX, tol=1e-8):
     elif not alc.matricesiguales(alc.traspuesta(pXX),pXX):
         return False
     return True
-
+print("empieza")
+Q,R = alc.QR_con_HH(alc.traspuesta(Xt))
+W2 = pinvHouseHolder(Q,R, Yt)
