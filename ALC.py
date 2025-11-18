@@ -745,6 +745,16 @@ def pinvEcuacionesNormales(X, Y):
 Xt,Yt,Xv,Yv = cargarDataset("/home/Estudiante/Escritorio/LabosALC-main 1/LabosALC-main/template-alumnos") 
 #W = pinvEcuacionesNormales(Xt,Yt)
 
+U,S,V = alc.svd_reducida(Xt)
+
+def pinvSVD(U,S,V,Y):
+ S_inv= np.diag (1/S)
+ X_pinv= alc.traspuesta(V) @ S_inv @ alc.traspuesta(U)
+ W= Y @ X_pinv
+ return W
+
+print (pinvSVD(U,S,V,Yt))
+
 #%%
 def pinvHouseHolder(Q, R, Y):
     n,p=R.shape
