@@ -672,8 +672,8 @@ def svd_reducida(A, tol=1e-15):
 
 def cargarDataset(carpeta):
 
-    X_train_cats = np.load(carpeta + "/dataset/cats_and_dogs/train/cats/efficientnet_b3_embeddings.npy")
-    X_train_dogs = np.load(carpeta + "/dataset/cats_and_dogs/train/dogs/efficientnet_b3_embeddings.npy")
+    X_train_cats = np.load(carpeta + "template-alumnos/cats_and_dogs/train/cats/efficientnet_b3_embeddings.npy")
+    X_train_dogs = np.load(carpeta + "template-alumnos/cats_and_dogs/train/dogs/efficientnet_b3_embeddings.npy")
 
     Xt = np.concatenate((X_train_cats, X_train_dogs), axis=1)
 
@@ -685,8 +685,8 @@ def cargarDataset(carpeta):
     Yt[0, :n_train_cats] = 1 
     Yt[1, n_train_cats:] = 1  
 
-    X_val_cats = np.load(carpeta + "/dataset/cats_and_dogs/val/cats/efficientnet_b3_embeddings.npy")
-    X_val_dogs = np.load(carpeta + "/dataset/cats_and_dogs/val/dogs/efficientnet_b3_embeddings.npy")
+    X_val_cats = np.load(carpeta + "template-alumnos/cats_and_dogs/val/cats/efficientnet_b3_embeddings.npy")
+    X_val_dogs = np.load(carpeta + "template-alumnos/cats_and_dogs/val/dogs/efficientnet_b3_embeddings.npy")
 
     Xv = np.concatenate((X_val_cats, X_val_dogs), axis=1)
 
@@ -701,25 +701,25 @@ def cargarDataset(carpeta):
     return Xt, Yt, Xv, Yv
 
 def pinvEcuacionesNormales(X, Y):
-    rango = rango(X)
+    ranX = rango(X)
     print("1")
     n,p = X.shape
-    if rango == p and n>p:
+    if ranX == p and n>p:
         print("a")
         Xt = traspuesta(X)
         L,Lt = cholesky(multiplicar_matrices(Xt,X))
         print("1.1")
         Z = np.zeros((p,n))
         for i in range(n):
-            Z[:,i] = sustitucionInferior(L,Xt[:,i])
+            Z[:,i] = res_tri(L,Xt[:,i], inferior = True)
         print("1.2")
         U = np.zeros((p,n))
         for i in range(n):
-            U[:,i] = sustitucionSuperior(Lt,Z[:,i])
+            U[:,i] = res_tri(Lt,Z[:,i], inferior = False)
         print("1.3")
         W = multiplicar_matrices(Y,U)
         print("1.4")
-    elif rango == n:
+    elif ranX == n:
         if n < p:
             print("b")
             Xt = traspuesta(X)
@@ -729,12 +729,12 @@ def pinvEcuacionesNormales(X, Y):
             Z = np.zeros((n,p))
             print(p)
             for i in range(p):
-                Z[:,i] = sustitucionInferior(L,X[:,i])
+                Z[:,i] = res_tri(L,X[:,i], inferior = True)
                 print(i)
             print("2.2")
             Vt = np.zeros((n,p))
             for i in range(p):
-                Vt[:,i] = sustitucionSuperior(Lt,Z[:,i])
+                Vt[:,i] = res_tri(Lt,Z[:,i], inferior = False)
             print("2.3")
             V = traspuesta(Vt)
             W = multiplicar_matrices(Y,V)
@@ -746,39 +746,37 @@ def pinvEcuacionesNormales(X, Y):
             print("3.1")
     return W
 
-            
-Xt,Yt,Xv,Yv = cargarDataset("/home/Estudiante/Escritorio/LabosALC-main 1/LabosALC-main/template-alumnos") 
-#W = pinvEcuacionesNormales(Xt,Yt)
 
-U,S,V = np.linalg.svd(Xt)
 
 def pinvSVD(U,S,V,Y):
- S_inv= vectorDiagonal(1/S)
- X_pinv= multiplicar_matrices(multiplicar_matrices(V,S_inv),traspuesta(U))
- W= multiplicar_matrices(Y,X_pinv)
+ S_inv= np.diag((1/S))
+ V1 = V[:, :len(S)] 
+ X_pinv= V1 @ S_inv @ traspuesta(U)
+ W= Y@ X_pinv
  return W
 
-print (pinvSVD(U,S,V,Yt))
 
-#%%
+
+#
 def pinvHouseHolder(Q, R, Y):
-    n,p=R.shape
+    n,p=Q.shape
     Qt = traspuesta(Q)
     Vt = np.zeros((p,n))
     print(n)
     for i in range(n):
-        Vt[:,i] = sustitucionSuperior(R,Qt)
+        Vt[:,i] = res_tri(R,Qt[:,i], inferior = False)
         print(i)
     W = multiplicar_matrices(Y,traspuesta(Vt))
-    #W = multiplicar_matrices(Y,traspuesta(Vt))
     return W
 
 def pinvGramSchmidt(Q, R, Y):
-    n,p=R.shape
+    n,p=Q.shape
     Qt = traspuesta(Q)
     Vt = np.zeros((p,n))
+    print(n)
     for i in range(n):
-        Vt[:,i] = sustitucionSuperior(R,Qt)
+        Vt[:,i] = res_tri(R,Qt[:,i], inferior = False)
+        print(i)
     W = multiplicar_matrices(Y,traspuesta(Vt))
     return W
 
@@ -797,6 +795,21 @@ def esPseudoInversa(X, pX, tol=1e-8):
     elif not matricesiguales(traspuesta(pXX),pXX):
         return False
     return True
+
+#Q,R = QR_con_HH(traspuesta(Xt))
+
+
+Xt,Yt,Xv,Yv = cargarDataset("") 
 print("empieza")
-Q,R = QR_con_HH(traspuesta(Xt))
+print(Xt.shape)
+print(Yt.shape)
+"""Q,R = np.linalg.qr(traspuesta(Xt))
 W2 = pinvHouseHolder(Q,R, Yt)
+
+W = pinvEcuacionesNormales(Xt,Yt)
+np.save("W_cholesky", W)"""
+
+U,S,V = np.linalg.svd(Xt)
+W_svd= pinvSVD(U,S,V,Yt)
+print(W_svd)
+print(W_svd.shape)
