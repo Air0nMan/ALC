@@ -61,15 +61,15 @@ def rango(A):
 
 
 
-def diagonal(A):
+def diagonal(A): #devuelve una matriz que contiene solamente la diagonal de la matriz original A, y 0 en las demas posiciones
     res = np.zeros(A.shape)
     for i in range (A.shape[0]):
         res[i,i] = A[i,i]
     return res
 
-def vectorDiagonal(A):
+def vectorDiagonal(A): #dado un vector de tamaño n, devuelve una matriz nxn con los elementos del vector en la diagonal y cero en las demas posiciones
     n=len(A)
-    res = np.zeros(n,n)
+    res = np.zeros((n,n))
     for i in range(n):
         res[i,i]=A[i]
 
@@ -750,11 +750,11 @@ def pinvEcuacionesNormales(X, Y):
 Xt,Yt,Xv,Yv = cargarDataset("/home/Estudiante/Escritorio/LabosALC-main 1/LabosALC-main/template-alumnos") 
 #W = pinvEcuacionesNormales(Xt,Yt)
 
-U,S,V = svd_reducida(Xt)
+U,S,V = np.linalg.svd(Xt)
 
 def pinvSVD(U,S,V,Y):
  S_inv= vectorDiagonal(1/S)
- X_pinv= multiplicar_matrices(multiplicar_matrices(traspuesta(V),S_inv),traspuesta(U))
+ X_pinv= multiplicar_matrices(multiplicar_matrices(V,S_inv),traspuesta(U))
  W= multiplicar_matrices(Y,X_pinv)
  return W
 
