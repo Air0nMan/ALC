@@ -96,7 +96,7 @@ def traza(A): #devuelve la traza de la matriz A
 
 
 def calcularAx (A, x): # calcula el producto Ax donde A es una matriz y x un vector
-    res = []
+    """res = []
     n = len(A)
     m = len(x)
 
@@ -105,7 +105,11 @@ def calcularAx (A, x): # calcula el producto Ax donde A es una matriz y x un vec
         for j in range(m):
             suma += A[i][j]*x[j]
         res.append(suma)
-    return np.array(res)
+    return np.array(res)"""
+    A = np.asarray(A, dtype=float)
+    x = np.asarray(x, dtype=float)
+    # multiplicación matriz–vector
+    return A @ x
 
 
 
@@ -134,13 +138,15 @@ def matrizVandermonde(v):
 
 
 def producto_externo(x,y): # calcula el producto externo de dos vectores x e y
-
-    A = np.zeros((len(x),len(y)))
+    """A = np.zeros((len(x),len(y)))
 
     for i in range(len(x)):
         for j in range(len(y)):
             A[i][j] = x[i] * y[j]
-    return A
+    return A"""
+    x = np.asarray(x, dtype=float).reshape(-1, 1)   # vector columna
+    y = np.asarray(y, dtype=float).reshape(1, -1)   # vector fila
+    return x * y
 
 def multiplicar_matrices(A, B): # calcula el producto de dos matrices A y B
     """m, n = A.shape
@@ -152,16 +158,20 @@ def multiplicar_matrices(A, B): # calcula el producto de dos matrices A y B
     for i in range(m):
         for j in range(p):
             C[i,j] = multiplicar_vectores(A[i, :], B[:, j]) """
+    A = np.asarray(A, dtype=float)
+    B = np.asarray(B, dtype=float)
     C = A@B
     return C
 
 def traspuesta(A): #devuelve la traspuesta de la matriz A
-    n,m = A.shape # dimensiones de A
+    """n,m = A.shape # dimensiones de A
     res = np.zeros((m,n)) # creo una matriz de dimensiones invertidas
     for i in range(m):
         for j in range(n):
             res[i][j] = A[j][i] # asigno los valores traspuestos
-    return res
+    return res"""
+    A = np.asarray(A, dtype=float)
+    return np.array(list(zip(*A)))
 
 def esSimetrica(A,atol=0): #verifica si la matriz A es simetrica con una tolerancia atol
   matriz = np.array(A)
@@ -411,13 +421,16 @@ def esSDP(A,atol=1e-8):# verifica si la matriz A es simetrica definida positiva 
 
   return True
 
-def multiplicar_vectores(a,b):# calcula el producto "." entre dos vectores a y b
-  if len(a)!=len(b): # verifico que los vectores tengan la misma dimension
+def multiplicar_vectores(x,y):# calcula el producto "." entre dos vectores a y b
+  """if len(a)!=len(b): # verifico que los vectores tengan la misma dimension
     return None
   res = 0
   for i in range (len(a)):
     res+=a[i]*b[i]
-  return res
+  return res"""
+  x = np.asarray(x, dtype=float)
+  y = np.asarray(y, dtype=float)
+  return np.sum(x * y)
 
 def QR_con_GS(A, tol=1e-12,retorna_nops=False): # descomposicion QR usando el metodo de Gram-Schmidt
     m, n = A.shape # dimensiones de A
@@ -510,31 +523,70 @@ def metpot2k(A, tol=1e-12, K=1000):
 
     return v, aval_nuevo, k
 
-def diagRH(A,tol=1e-15,K=100):
-  n,_ = A.shape
-  v,l,_ = metpot2k(A,tol,K)
-  H = np.eye(n) - 2* multiplicar_matrices(traspuesta(np.array([np.eye(n)[0]-v])),np.array([np.eye(n)[0]-v])) / (norma(np.eye(n)[0]-v,2))**2
-  if (n==2):
-    S = H.copy()
-    D = multiplicar_matrices(H,multiplicar_matrices(A,traspuesta(H)))
-  else:
-    B = multiplicar_matrices(H,multiplicar_matrices(A,traspuesta(H)))
-    A1 = np.zeros((n-1,n-1))
-    for i in range(n-1):
-      for j in range(n-1):
-        A1[i,j] = B[i+1,j+1]
-    S1,D1 = diagRH(A1,tol,K)
+def diagRH(A, tol=1e-15, K=100, n_total=None):
+    """
+    Diagonaliza por Householder recursivo usando método de potencias.
+    Además imprime un progreso aproximado en función del tamaño actual n.
+    """
+    A = np.asarray(A, dtype=float)
+    n, _ = A.shape
 
-    D = np.zeros((n,n))
-    D[0,0] = l
-    for i in range (1,n):
-      D[i,i] = D1[i-1,i-1]
-    S=np.eye(n)
-    for i in range(1,n):
-      for j in range(1,n):
-        S[i,j] = S1[i-1,j-1]
+    # En la primera llamada guardamos el tamaño total
+    if n_total is None:
+        n_total = n
+
+    # Progreso aproximado: cuando n pasa de n_total a 1
+    if n_total > 1:
+        progreso = 100 * (n_total - n) / (n_total - 1)
+        print(f"[diagRH] Progreso aproximado: {progreso:.2f}% (n = {n} de {n_total})")
+
+    # Caso base n == 1
+    if n == 1:
+        return np.eye(1), np.array([[A[0, 0]]])
+
+    # Autovector y autovalor dominante con método de potencias
+    v, l, _ = metpot2k(A, tol=tol, K=K)   # v: autovector, l: autovalor
+
+    # Construimos Householder H que lleva v a e1
+    e1 = np.zeros(n)
+    e1[0] = 1.0
+    u = e1 - v
+    denom = norma(u, 2)**2
+    if denom == 0:   # por si v ≈ e1
+        H = np.eye(n)
+    else:
+        # H = I - 2 u u^T / (u^T u)
+        H = np.eye(n) - 2.0 * producto_externo(u, u) / denom
+
+    if n == 2:
+        S = H.copy()
+        # D = H A H^T
+        D = multiplicar_matrices(multiplicar_matrices(H,A),traspuesta(H))
+        return S, D
+
+    # Paso recursivo
+    # B = H A H^T
+    B = multiplicar_matrices(multiplicar_matrices(H,A),traspuesta(H))
+
+    # Tomamos el bloque (n-1)x(n-1) de abajo a la derecha
+    A1 = B[1:, 1:]          # slicing en lugar de doble for
+
+    # Diagonalizamos recursivamente A1
+    S1, D1 = diagRH(A1, tol=tol, K=K, n_total=n_total)
+
+    # Armamos D completa: l en la primer diagonal, luego diag(D1)
+    D = np.zeros_like(A)
+    D[0, 0] = l
+    D[1:, 1:] = D1
+
+    # Armamos S completa: arriba-izquierda 1, el resto S1
+    S = np.eye(n)
+    S[1:, 1:] = S1
+
+    # Aplicamos la transformación global
     S = multiplicar_matrices(H,S)
-  return S,D
+
+    return S, D
 
 #labo7
 
@@ -606,45 +658,78 @@ def multiplica_rala_vector(A, v):
        res[i] += Aij * v[j]
     return res
 
-def svd_reducida(A, tol=1e-15): # calcula la descomposicion SVD reducida de la matriz A
+def svd_reducida(A, k="max", tol=1e-15): # calcula la SVD reducida de la matriz A
+    A = np.array(A, dtype=float)
     m, n = A.shape
+
+    if m < n:
+        print("[svd_reducida] Caso m < n, llamando recursivamente con A^T")
+        U_t, S_vals, V_t = svd_reducida(traspuesta(A), k=k, tol=tol)
+        hatV = U_t
+        r = len(S_vals)
+
+        if r == 0:
+            hatU = np.zeros((m, 0))
+            return hatU, S_vals, hatV
+
+        hatU = np.zeros((m, r))
+        for j in range(r):
+            vj = hatV[:, j]
+            Av = calcularAx(A, vj)
+            hatU[:, j] = Av / S_vals[j]
+
+        print("[svd_reducida] Terminado caso m < n")
+        return hatU, S_vals, hatV
+
+    print("[svd_reducida] Construyendo A^T A...")
     AT = traspuesta(A)
     AtA = multiplicar_matrices(AT, A)
+
+    AtA = np.array(AtA, dtype=float)
+    AtA = 0.5 * (AtA + traspuesta(AtA))
+
+    print("[svd_reducida] Llamando a diagRH...")
     S, D = diagRH(AtA, tol=tol, K=10000)
+    print("[svd_reducida] diagRH terminado, armando U, S, V...")
 
-    n_diag = D.shape[0]
-    autovalores = np.zeros(n_diag)
+    S = np.array(S, dtype=float)
+    D = np.array(D, dtype=float)
 
-    for i in range(n_diag):
-        autovalores[i] = D[i, i]
-    perm = np.argsort(-autovalores)
-    autovalores = autovalores[perm]
-    V = S[:, perm]
-
+    autovalores = np.diag(D).copy()
+    orden = np.argsort(-autovalores)
+    autovalores = autovalores[orden]
+    V = S[:, orden]
     autovalores[autovalores < 0] = 0.0
-    valores_propios = np.sqrt(autovalores)
 
-    k = min(m, n)
-    valores_k = valores_propios[:k]
-    V_k = V[:, :k]
+    indices_validos = autovalores > tol
+    autovalores_validos = autovalores[indices_validos]
+    V_validas = V[:, indices_validos]
 
-    no_nulos = valores_k > tol
-    hS = valores_k[no_nulos]
-    r = len(hS)
+    sigmas_completos = np.sqrt(autovalores_validos)
+    r_total = len(sigmas_completos)
 
-    if r == 0:
-        hU = np.zeros((m, 0))
-        hV = np.zeros((n, 0))
-        return hU, hS, hV
+    if r_total == 0:
+        hatU = np.zeros((m, 0))
+        hatV = np.zeros((n, 0))
+        print("[svd_reducida] Rango ~0, devolviendo vacíos")
+        return hatU, sigmas_completos, hatV
 
-    hV = V_k[:, no_nulos]
-    hU = np.zeros((m, r))
+    if k == "max":
+        r = r_total
+    else:
+        r = min(k, r_total)
+
+    hatS = sigmas_completos[:r]
+    hatV = V_validas[:, :r]
+
+    hatU = np.zeros((m, r))
     for j in range(r):
-        vj = hV[:, j]
-        Avj = calcularAx(A, vj)
-        hU[:, j] = Avj / hS[j]
+        vj = hatV[:, j]
+        Av = calcularAx(A, vj)
+        hatU[:, j] = Av / hatS[j]
 
-    return hU, hS, hV
+    print("[svd_reducida] Terminado SVD reducida.")
+    return hatU, hatS, hatV
 
 
 #Funciones TP ALC
