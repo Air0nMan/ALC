@@ -17,9 +17,9 @@ def esCuadrada(matrizInput):
         return False
 
 
-def triangSup(A):
+def triangSup(A): #devuelve la matriz A transformada en una matriz triangular superior mediante eliminacion gaussiana
     A = A.copy().astype(float)
-    n, m = A.shape
+    n, m = A.shape # dimensiones de A
     k = min(n, m)   # por si la matriz no es cuadrada
 
     for i in range(k):
@@ -43,11 +43,11 @@ def triangSup(A):
     return A
 
 
-def rango(A):
-    B = triangSup(A)
-    n,m= B.shape
-    cont = 0
-    for i in range(n):
+def rango(A): #devuelve el rango de la matriz A
+    B = triangSup(A) # primero la triangulo
+    n,m= B.shape # dimensiones de B
+    cont = 0 #contador de filas no nulas
+    for i in range(n): #recorro filas y cuento las que no son nulas
         vector_nulo = 0
         for j in range(m):
             if B[i][j] != 0:
@@ -74,7 +74,7 @@ def vectorDiagonal(A): #dado un vector de tamaño n, devuelve una matriz nxn con
         res[i,i]=A[i]
 
 
-def intercambiarFilas(A,i,j):
+def intercambiarFilas(A,i,j): # intercambia las filas i y j de la matriz A
     A=np.array(A)
     A[[i,j]] = A[[j,i]]
     return A
@@ -86,7 +86,7 @@ def sumarFilaMultiplo(A,i,j,s):
     return A
 
 
-def traza(A):
+def traza(A): #devuelve la traza de la matriz A
     res = 0
     for i in range (len(A)):
         res+= A[i][i]
@@ -95,7 +95,7 @@ def traza(A):
 
 
 
-def calcularAx (A, x):
+def calcularAx (A, x): # calcula el producto Ax donde A es una matriz y x un vector
     res = []
     n = len(A)
     m = len(x)
@@ -107,30 +107,9 @@ def calcularAx (A, x):
         res.append(suma)
     return np.array(res)
 
-def sustitucionInferior(L,b):
-    n = L.shape[0]
-    x = np.zeros(n)
-
-    for i in range(n):
-        suma = 0
-        for j in range(i):
-            suma += L[i][j] * x[j]
-        x[i] = (b[i] - suma) / L[i][i]
-    return x
-
-def sustitucionSuperior(U,b):
-    n = U.shape[0]
-    x = np.zeros(n)
-
-    for i in range(n-1,-1,-1):
-        suma = 0
-        for j in range(i+1,n):
-            suma += U[i][j] * x[j]
-        x[i] = (b[i] - suma) / U[i][i]
-    return x
 
 
-def esDiagonalmenteDominante(A):
+def esDiagonalmenteDominante(A): #verifica si la matriz A es diagonalmente dominante
     for i in range (len(A)):
         suma = 0
         diagonal = 0
@@ -154,7 +133,7 @@ def matrizVandermonde(v):
 
 
 
-def producto_externo(x,y):
+def producto_externo(x,y): # calcula el producto externo de dos vectores x e y
 
     A = np.zeros((len(x),len(y)))
 
@@ -163,7 +142,7 @@ def producto_externo(x,y):
             A[i][j] = x[i] * y[j]
     return A
 
-def multiplicar_matrices(A, B):
+def multiplicar_matrices(A, B): # calcula el producto de dos matrices A y B
     """m, n = A.shape
     n1, p = B.shape
     if n != n1:
@@ -176,35 +155,35 @@ def multiplicar_matrices(A, B):
     C = A@B
     return C
 
-def traspuesta(A):
-    n,m = A.shape
-    res = np.zeros((m,n))
+def traspuesta(A): #devuelve la traspuesta de la matriz A
+    n,m = A.shape # dimensiones de A
+    res = np.zeros((m,n)) # creo una matriz de dimensiones invertidas
     for i in range(m):
         for j in range(n):
-            res[i][j] = A[j][i]
+            res[i][j] = A[j][i] # asigno los valores traspuestos
     return res
 
-def esSimetrica(A,atol=0):
+def esSimetrica(A,atol=0): #verifica si la matriz A es simetrica con una tolerancia atol
   matriz = np.array(A)
   if matriz.ndim !=2:
    return False
-  filas, columnas = matriz.shape
-  if filas!=columnas:
+  filas, columnas = matriz.shape # dimensiones de la matriz
+  if filas!=columnas: # una matriz no cuadrada no puede ser simetrica
    return False
   for i in range(filas):
    for j in range(filas):
-    if error_relativo(matriz[i][j], matriz[j][i])>atol:
+    if error_relativo(matriz[i][j], matriz[j][i])>atol: # comparo elemento a elemento con la tolerancia
      return False
   return True
 
 #Labo 1
-def error(x,y):
+def error(x,y): # calcula el error absoluto entre dos valores x e y
   x= np.float64(x)
   y= np.float64(y)
   return np.abs(x-y)
 
 
-def error_relativo(x,y):
+def error_relativo(x,y): # calcula el error relativo entre dos valores x e y
   x=np.float64(x)
   y=np.float64(y)
 
@@ -214,18 +193,18 @@ def error_relativo(x,y):
       return np.abs(x-y)/np.abs(x)
 
 
-def matricesiguales (A,B,tol=0):
-  if A.shape!= B.shape:
+def matricesiguales (A,B,tol=0): #verifica si dos matrices A y B son iguales con una tolerancia tol
+  if A.shape!= B.shape: # Si las matrices tienen dimensiones distintas, no son iguales
     return False
   for i in range (A.shape[0]):
       for j in range (A.shape[1]):
-        if error_relativo(A[i][j],B[i][j]) > tol:
+        if error_relativo(A[i][j],B[i][j]) > tol: # comparo elemento a elemento con la tolerancia
           return False
   return True
 
 #labo2
 
-def rota(theta):
+def rota(theta): #devuelve la matriz de rotacion de angulo theta
   cos_t=np.cos(theta)
   sen_t=np.sin(theta)
   return np.array([[cos_t, -sen_t],[sen_t,  cos_t]])
@@ -245,7 +224,7 @@ def rotayescala(theta,s):
 
 #labo3
 
-def norma(x,p):
+def norma(x,p): # calcula la norma p de un vector x
     if(p == "inf"): #se rompe en lista vacia
         max = abs(x[0])
         for i in x:
@@ -255,19 +234,19 @@ def norma(x,p):
 
     sum = 0
     for i in x:
-        sum += abs(i)**p
-    sum = sum ** (1/p)
+        sum += abs(i)**p # suma de las potencias
+    sum = sum ** (1/p) # raiz p de la suma
     return sum
 
-def normaliza(X, p ):
+def normaliza(X, p ): # normaliza cada fila de la matriz X segun la norma p
     res = [None]*len(X)
     for i in range(0,len(X)):
         res[i] = [None]*len(X[i])
         for j in range (len(X[i])):
-            res[i][j] = X[i][j]/norma(X[i],p)
+            res[i][j] = X[i][j]/norma(X[i],p) # normalizo cada fila
     return res
 
-def normaExacta(a,p=[1,"inf"]):
+def normaExacta(a,p=[1,"inf"]): 
     if p == 2:
         return None
 
@@ -296,7 +275,7 @@ def normaExacta(a,p=[1,"inf"]):
     return res1,resinf
 
 
-def _generar_vector_normalizado_p(m, p):
+def _generar_vector_normalizado_p(m, p): # genera un vector random de tamaño m normalizado con la norma p
 
     if p == 2:
         x = np.random.normal(size = m)
@@ -307,45 +286,45 @@ def _generar_vector_normalizado_p(m, p):
         return np.zeros(m)
     return x / norm_x
 
-def normaMatMC(A, q, p, Np):
+def normaMatMC(A, q, p, Np): # calcula la norma matricial usando Monte Carlo con Np vectores aleatorios
     res = 0
     vector_max = None
 
     A_mat = np.array(A)
-    n, m = np.shape(A_mat)
+    n, m = np.shape(A_mat) # dimensiones de A
 
-    for i in range(Np):
+    for i in range(Np): # genero Np vectores aleatorios normalizados
         x_norm = _generar_vector_normalizado_p(m, p)
         Ax = calcularAx(A_mat, x_norm)
-        normaX = norma(Ax, q)
+        normaX = norma(Ax, q) # calculo la norma del vector Ax
 
-        if normaX > res:
+        if normaX > res: # guardo el maximo
             res = normaX
             vector_max = x_norm
 
     return res, vector_max
 
-def condExacta(A,p):
-    inversa = np.linalg.inv(A)
+def condExacta(A,p): # calcula el numero de condicion exacto de la matriz A con la norma p
+    inv = inversa(A) # calculo la inversa de A
     res = 0
     if p == 1:
-        res = normaExacta(A,p)[0]*normaExacta(inversa)[0]
+        res = normaExacta(A,p)[0]*normaExacta(inv)[0]
     elif p == "inf":
-        res = normaExacta(A,p)[1]*normaExacta(inversa)[1]
-    else:
-        res = normaMatMC(A,p,p,10000)[0]* normaMatMC(inversa,p,p,10000)[0]
+        res = normaExacta(A,p)[1]*normaExacta(inv)[1]
+    else: 
+        res = normaMatMC(A,p,p,10000)[0]* normaMatMC(inv,p,p,10000)[0]
 
     return res
 
-def condMC( A, p ):
-    inversa = np.linalg.inv(A)
+def condMC( A, p ): # calcula el numero de condicion aproximado de la matriz A con la norma p usando Monte Carlo
+    inv = inversa(A)
     res = 0
-    res = normaMatMC(A,p,p,10000)[0]* normaMatMC(inversa,p,p,10000)[0]
+    res = normaMatMC(A,p,p,10000)[0]* normaMatMC(inv,p,p,10000)[0]
     return res
 
 #labo4
-def calculaLU(M):
-    if M is None or M.ndim != 2 or M.shape[0] != M.shape[1]:
+def calculaLU(M): # calcula la descomposicion LU de la matriz M
+    if M is None or M.ndim != 2 or M.shape[0] != M.shape[1]: # verifico que M sea cuadrada
         return None, None, 0
     M = M.copy().astype(float)
     N = M.shape[0]
@@ -366,16 +345,16 @@ def calculaLU(M):
 
     return L,U, contador
 
-def res_tri(L,b, inferior = True):
+def res_tri(L,b, inferior = True): # resuelve el sistema Lx=b si inferior es True, o Ux=b si inferior es False
     n = len(L)
     x = [0.0] * n
-    if inferior:
+    if inferior: # sistema triangular inferior
         for i in range( n ):
             suma = 0.0
             for j in range( i ):
                 suma += L[i][j] * x[j]
             x[i] = ( b[i] - suma ) / L[i][i]
-    else:
+    else: # sistema triangular superior
         for i in range(n - 1, -1, -1):
             suma = 0.0
             for j in range(i+1, n):
@@ -383,11 +362,11 @@ def res_tri(L,b, inferior = True):
             x[i] = (b[i] - suma) / L[i][i]
     return x
 
-def inversa(M):
-    n = M.shape[0]
-    L, U, T = calculaLU(M)
+def inversa(M): # calcula la inversa de la matriz M usando la descomposicion LU
+    n = M.shape[0] # dimensiones de M
+    L, U, T = calculaLU(M) # calculo la descomposicion LU de M
     inversa = np.array([])
-    if L is None:
+    if L is None:  # si no se pudo calcular la descomposicion LU, devuelvo None
         inversa = None
     else:
         inversa = np.zeros((n, n))
@@ -400,48 +379,48 @@ def inversa(M):
 
     return inversa
 
-def calculaLDV (A):
-  L,U,_ = calculaLU(A)
-  if (L is None or U is None):
+def calculaLDV (A): # calcula la descomposicion LDV de la matriz A
+  L,U,_ = calculaLU(A) # primero calculo la descomposicion LU de A
+  if (L is None or U is None): # si no se pudo calcular la descomposicion LU, devuelvo None
    return None,None,None
-  V,D,_ = calculaLU(traspuesta(U))
-  if (D is None or V is None):
+  V,D,_ = calculaLU(traspuesta(U)) #calculo la descomposicion LU de la traspuesta de U
+  if (D is None or V is None):# si no se pudo calcular la descomposicion LU, devuelvo None
      return None,None,None
   return L,D,traspuesta(V)
 
-def cholesky(A):
-    L,U,_ = calculaLU(A)
-    D = diagonal(U)
+def cholesky(A):# calcula la descomposicion de Cholesky de la matriz A asumiendo que cumple las condiciones necesarias
+    L,U,_ = calculaLU(A) # primero calculo la descomposicion LU de A
+    D = diagonal(U) # me queda con la diagonal de U
     for i in range(L.shape[0]):
         L[:,i] = L[:,i] * np.sqrt(D[i,i])
     return L,traspuesta(L)
     
 
-def esSDP(A,atol=1e-8):
+def esSDP(A,atol=1e-8):# verifica si la matriz A es simetrica definida positiva con una tolerancia atol
   if A is None:
     return None
-  if not esSimetrica(A,atol):
+  if not esSimetrica(A,atol):# verifica si A es simetrica
     return False
-  L,D,V = calculaLDV(A)
+  L,D,V = calculaLDV(A)# calcula la descomposicion LDV de A
   if D is None:
     return None
   n=A.shape[0]
   for i in range(n):
-    if D[i][i] <= atol :
+    if D[i][i] <= atol :# verifica si los elementos de la diagonal de D son positivos
       return False
 
   return True
 
-def multiplicar_vectores(a,b):
-  if len(a)!=len(b):
+def multiplicar_vectores(a,b):# calcula el producto "." entre dos vectores a y b
+  if len(a)!=len(b): # verifico que los vectores tengan la misma dimension
     return None
   res = 0
   for i in range (len(a)):
     res+=a[i]*b[i]
   return res
 
-def QR_con_GS(A, tol=1e-12,retorna_nops=False):
-    m, n = A.shape
+def QR_con_GS(A, tol=1e-12,retorna_nops=False): # descomposicion QR usando el metodo de Gram-Schmidt
+    m, n = A.shape # dimensiones de A
     Q = np.zeros((m, n))
     R = np.zeros((n, n))
 
@@ -472,10 +451,10 @@ def QR_con_GS(A, tol=1e-12,retorna_nops=False):
 
     return Q_hat, R_hat
 
-def QR_con_HH(A, tol=1e-12):
+def QR_con_HH(A, tol=1e-12): # descomposicion QR usando Householder
     A = np.array(A, dtype=float)
-    m, n = A.shape
-    if m < n:
+    m, n = A.shape # dimensiones de A
+    if m < n: # no se puede hacer la descomposicion QR
         return None
 
     R = A.copy()
@@ -489,7 +468,7 @@ def QR_con_HH(A, tol=1e-12):
         e1[0] = 1
         u = x - alfa * e1
 
-        if norma(u,2) > tol:
+        if norma(u,2) > tol: # evito divisiones por cero
             u = u / norma(u,2)
 
             Hk = np.eye(m-k)-2*producto_externo(u, u)
@@ -505,7 +484,7 @@ def QR_con_HH(A, tol=1e-12):
     return Q, R
 
 
-def calculaQR(A,metodo='RH',tol=1e-12):
+def calculaQR(A,metodo='RH',tol=1e-12): # calcula la descomposicion QR de la matriz A usando el metodo pedido
   if metodo == "RH":
     return QR_con_HH(A,tol)
   elif metodo == "GM":
@@ -578,7 +557,7 @@ def transiciones_al_azar_uniformes(n, thres):
 
     return M
 
-def nucleo(A, tol=1e-15):
+def nucleo(A, tol=1e-15): # calcula el nucleo de la matriz A
     A_t = traspuesta(A)
     M = multiplicar_matrices(A_t, A)
 
@@ -627,7 +606,7 @@ def multiplica_rala_vector(A, v):
        res[i] += Aij * v[j]
     return res
 
-def svd_reducida(A, tol=1e-15):
+def svd_reducida(A, tol=1e-15): # calcula la descomposicion SVD reducida de la matriz A
     m, n = A.shape
     AT = traspuesta(A)
     AtA = multiplicar_matrices(AT, A)
@@ -670,7 +649,7 @@ def svd_reducida(A, tol=1e-15):
 
 #Funciones TP ALC
 
-def cargarDataset(carpeta):
+def cargarDataset(carpeta): # carga el dataset de gatos y perros desde la carpeta especificada
 
     X_train_cats = np.load(carpeta + "template-alumnos/cats_and_dogs/train/cats/efficientnet_b3_embeddings.npy")
     X_train_dogs = np.load(carpeta + "template-alumnos/cats_and_dogs/train/dogs/efficientnet_b3_embeddings.npy")
