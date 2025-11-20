@@ -805,13 +805,13 @@ def pinvSVD(U,S,V,Y):
 
 
 def pinvHouseHolder(Q, R, Y):
-    n,p=Q.shape
-    Q = Q[:,:n]
-    R = R[:n,:]
+    n,p=R.shape
+    Q = Q[:,:p]
+    R = R[:p,:]
     Qt = traspuesta(Q)
-    Vt = np.zeros((n,p))
+    Vt = np.zeros((p,n))
     print(n)
-    for i in range(p):
+    for i in range(n):
         Vt[:,i] = res_tri(R,Qt[:,i], inferior = False)
         print(i)
     np.save("xinv_hh", traspuesta(Vt))
@@ -845,13 +845,3 @@ def esPseudoInversa(X, pX, tol=1e-8):
         return False
     return True
 
-X_t,Y_t,Xv,Yv= cargarDataset("")
-Q,R= QR_con_HH(traspuesta(X_t))
-print(Q.shape)
-print (R.shape)
-np.save("Qh",Q)
-np.save("Rh",R)
-"""Wh= pinvHouseHolder(Q,R,Y_t)
-np.save("wh",Wh)
-print(Wh)
-print("listo")"""
