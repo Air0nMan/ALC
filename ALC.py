@@ -780,18 +780,15 @@ def pinvEcuacionesNormales(X,L, Y): # calcula la pseudoinversa de X usando chole
             V = traspuesta(Vt)
             W = multiplicar_matrices(Y,V)
         elif n == p:
-            Wt = np.zeros((n,Y.shape[0]))
-            for i in range(Y.shape[0]):
-                Wt[:,i] = res_tri(Xt,Yt[:,i], inferior = False)
-            W = traspuesta(Wt)
+            W = multiplicar_matrices(Y,inversa(X))
     return W
 
 
 def pinvSVD(U,S,V,Y):  # calcula la pseudoinversa de X usando SVD
  S_inv= np.diag((1/S))
- V1 = V[:, :len(S)] 
- X_pinv= V1 @ S_inv @ traspuesta(U)
- W= Y@ X_pinv
+ V1 = V[:, :len(S)]
+ X_pinv = multiplicar_matrices(multiplicar_matrices(V1, S_inv), traspuesta(U))
+ W=multiplicar_matrices(Y, X_pinv)
  return W
 
 
