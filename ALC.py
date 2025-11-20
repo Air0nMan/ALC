@@ -809,11 +809,12 @@ def pinvHouseHolder(Q, R, Y):
     Q = Q[:,:n]
     R = R[:n,:]
     Qt = traspuesta(Q)
-    Vt = np.zeros((p,n))
+    Vt = np.zeros((n,p))
     print(n)
-    for i in range(n):
+    for i in range(p):
         Vt[:,i] = res_tri(R,Qt[:,i], inferior = False)
         print(i)
+    np.save("xinv_hh", traspuesta(Vt))
     W = multiplicar_matrices(Y,traspuesta(Vt))
     return W
 
@@ -843,3 +844,14 @@ def esPseudoInversa(X, pX, tol=1e-8):
     elif not matricesiguales(traspuesta(pXX),pXX):
         return False
     return True
+
+X_t,Y_t,Xv,Yv= cargarDataset("")
+Q,R= QR_con_HH(traspuesta(X_t))
+print(Q.shape)
+print (R.shape)
+np.save("Qh",Q)
+np.save("Rh",R)
+"""Wh= pinvHouseHolder(Q,R,Y_t)
+np.save("wh",Wh)
+print(Wh)
+print("listo")"""
