@@ -806,6 +806,8 @@ def pinvSVD(U,S,V,Y):
 
 def pinvHouseHolder(Q, R, Y):
     n,p=Q.shape
+    Q = Q[:,:n]
+    R = R[:n,:]
     Qt = traspuesta(Q)
     Vt = np.zeros((p,n))
     print(n)
