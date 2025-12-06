@@ -8,22 +8,21 @@ def esCuadrada(matrizInput):
         return False
 
 
-def triangSup(A): #devuelve la matriz A transformada en una matriz triangular superior mediante eliminacion gaussiana
-    A = A.copy().astype(float)
-    n, m = A.shape # dimensiones de A
+def triangSup(A, tol=1e-12):  # devuelve A triangular superior mediante eliminación gaussiana
+    A = np.array(A, dtype=float).copy()
+    n, m = A.shape
     k = min(n, m)   # por si la matriz no es cuadrada
 
     for i in range(k):
-
-        # 1. Pivoteo parcial: buscar fila con el mayor valor absoluto en la columna i
-        if A[i, i] == 0:
+        # 1. Pivoteo parcial si el pivote es numéricamente chico
+        if abs(A[i, i]) < tol:
             for j in range(i + 1, n):
-                if A[j, i] != 0:
+                if abs(A[j, i]) > tol:
                     A[[i, j]] = A[[j, i]]  # swap de filas
                     break
 
-        # Si sigue siendo 0, no se puede eliminar en esta columna
-        if A[i, i] == 0:
+        # Si sigue siendo ~0, no pivoteamos en esta columna
+        if abs(A[i, i]) < tol:
             continue
 
         # 2. Eliminación hacia abajo
@@ -34,21 +33,16 @@ def triangSup(A): #devuelve la matriz A transformada en una matriz triangular su
     return A
 
 
-def rango(A): #devuelve el rango de la matriz A
-    B = triangSup(A) # primero la triangulo
-    n,m= B.shape # dimensiones de B
-    cont = 0 #contador de filas no nulas
-    for i in range(n): #recorro filas y cuento las que no son nulas
-        vector_nulo = 0 #contador de ceros en la fila
-        for j in range(m):
-            if B[i][j] != 0: #si encuentro un elemento distinto de cero, la fila no es nula
-                continue
-            else:
-                vector_nulo+=1 #cuento ceros
-        if vector_nulo < m:
-            cont+=1   #si la fila no es nula, incremento el contador
-    return cont
 
+def rango(A, tol=1e-10):  # devuelve el rango de la matriz A
+    B = triangSup(A, tol=tol)  # primero la triangulo
+    n, m = B.shape
+    cont = 0
+    for i in range(n):
+        # La fila es no nula si algún elemento tiene |valor| > tol
+        if np.any(np.abs(B[i, :]) > tol):
+            cont += 1
+    return cont
 
 
 
@@ -63,6 +57,7 @@ def vectorDiagonal(A): #dado un vector de tamaño n, devuelve una matriz nxn con
     res = np.zeros((n,n)) # creo una matriz de ceros de tamaño nxn
     for i in range(n): # recorro el vector y asigno los valores en la diagonal
         res[i,i]=A[i]
+    return res
 
 
 def intercambiarFilas(A,i,j): # intercambia las filas i y j de la matriz A
@@ -149,6 +144,8 @@ def multiplicar_matrices(A, B): # calcula el producto de dos matrices A y B
     for i in range(m):# recorro las filas de A
         for j in range(p):# recorro las columnas de B
             C[i,j] = multiplicar_vectores(A[i, :], B[:, j])# asigno el valor de la multiplicacion
+    return C
+
     """A = np.asarray(A, dtype=float)
     B = np.asarray(B, dtype=float)
     C = A@B
@@ -455,37 +452,43 @@ def QR_con_GS(A, tol=1e-12,retorna_nops=False): # descomposicion QR usando el me
 
     return Q_hat, R_hat
 
-def QR_con_HH(A, tol=1e-12): # descomposicion QR usando Householder
+def QR_con_HH(A, tol=1e-12):  # descomposición QR usando Householder
     A = np.array(A, dtype=float)
-    m, n = A.shape # dimensiones de A
-    if m < n: # no se puede hacer la descomposicion QR
-        return None
+    m, n = A.shape  # dimensiones de A
 
     R = A.copy()
     Q = np.eye(m)
-    print(n)
-    for k in range(n):
-        print(k)
+
+    # trabajamos hasta la min(m, n) para soportar matrices rectangulares
+    for k in range(min(m, n)):
+        # tomamos el vector columna desde la fila k hacia abajo
         x = R[k:, k]
-        alfa = -np.sign(x[0]) * norma(x,2)
+
+        # norma 2 de x
+        alfa = -np.sign(x[0]) * norma(x, 2)
         e1 = np.zeros_like(x)
         e1[0] = 1
         u = x - alfa * e1
 
-        if norma(u,2) > tol: # evito divisiones por cero
-            u = u / norma(u,2)
+        # evitamos divisiones por cero (vector casi nulo)
+        if norma(u, 2) <= tol:
+            continue
 
-            Hk = np.eye(m-k)-2*producto_externo(u, u)
-            Hk_sub = np.zeros((m,m))
-            for i in range(k):
-                Hk_sub[i,i] = 1
-            Hk_sub[k:,k:] = Hk
-            
+        u = u / norma(u, 2)
 
-            R = multiplicar_matrices(Hk_sub, R)
-            Q = multiplicar_matrices(Q,Hk_sub.T)
+        # Householder en el subespacio (m-k)×(m-k)
+        Hk_small = np.eye(m - k) - 2 * producto_externo(u, u)
+
+        # extendemos a una matriz m×m
+        Hk = np.eye(m)
+        Hk[k:, k:] = Hk_small
+
+        # actualizamos R y Q
+        R = multiplicar_matrices(Hk, R)
+        Q = multiplicar_matrices(Q, traspuesta(Hk))
 
     return Q, R
+
 
 
 def calculaQR(A,metodo='RH',tol=1e-12): # calcula la descomposicion QR de la matriz A usando el metodo pedido
@@ -785,9 +788,11 @@ def pinvEcuacionesNormales(X,L, Y): # calcula la pseudoinversa de X usando chole
 
 
 def pinvSVD(U,S,V,Y):  # calcula la pseudoinversa de X usando SVD
+    
  S_inv= np.diag((1/S))
- V1 = V[:, :len(S)]
- X_pinv = multiplicar_matrices(multiplicar_matrices(V1, S_inv), traspuesta(U))
+ V1= V[:,:len(S)]
+ U1= U[:,:len(S)]
+ X_pinv = multiplicar_matrices(multiplicar_matrices(V1, S_inv), traspuesta(U1))
  W=multiplicar_matrices(Y, X_pinv)
  return W
 
@@ -805,6 +810,8 @@ def pinvHouseHolder(Q, R, Y): # calcula la pseudoinversa de X usando Householder
     np.save("xinv_hh", traspuesta(Vt))
     W = multiplicar_matrices(Y,traspuesta(Vt))
     return W
+
+
 
 def pinvGramSchmidt(Q, R, Y): # calcula la pseudoinversa de X usando Gram-Schmidt
     n,p=Q.shape
@@ -829,7 +836,7 @@ def esPseudoInversa(X, pX, tol=1e-8): #verifica si pX es la pseudoinversa de X c
         return False
     elif not matricesiguales(traspuesta(XpX),XpX,tol):
         return False
-    elif not matricesiguales(traspuesta(pXX),pXX):
+    elif not matricesiguales(traspuesta(pXX),pXX,tol):
         return False
     return True
 
