@@ -151,8 +151,8 @@ def multiplicar_matrices(A, B): # calcula el producto de dos matrices A y B
             C[i,j] = multiplicar_vectores(A[i, :], B[:, j])# asigno el valor de la multiplicacion
     """A = np.asarray(A, dtype=float)
     B = np.asarray(B, dtype=float)
-    C = A@B
-    return C"""
+    C = A@B"""
+    return C
 
 def traspuesta(A): #devuelve la traspuesta de la matriz A
     n,m = A.shape # dimensiones de A
